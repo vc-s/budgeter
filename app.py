@@ -1,6 +1,7 @@
-from fastapi import FastAPI, status, HTTPException
 from typing import Optional
 from pydantic import BaseModel, Field
+from fastapi import FastAPI, status, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 
 class BucketData(BaseModel):
     balance: int = Field(ge=0)
@@ -21,6 +22,14 @@ class TransferData(BaseModel):
     amount: int = Field(ge=0)
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # for dev only
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 buckets = {'Transport': {'balance': 680, 'cap': 680}}
 
