@@ -53,6 +53,10 @@ function App() {
 		getBuckets()
 	}
 
+	// TODO: Add bucket update functionality
+	// Make a pencil icon in front of the X button
+	// When you click it, all of the fields become editable
+
 	useEffect(() => {
 		getBuckets()
 	}, [])
@@ -109,7 +113,7 @@ function App() {
 			<ol class="bucket-list">
 				{Object.entries(buckets).map(([index, data]) => (
 					<li key={index}>
-						{data.name}: ID = {data.id}, Balance = {data.balance}, Cap = {data.cap || 'None'}
+						{data.name}: Balance = {data.balance}, Cap = {data.cap || 'None'}
 						<button class="delete-button" onClick={() => removeBucket(data.id)}>X</button>
 						<br /> <br />
 					</li>

@@ -63,6 +63,7 @@ def remove_bucket(id: int):
         detail = 'Bucket does not exist'
     )
 
+# TODO: rewire according to new buckets format
 @app.put('/update-balance')
 def update_balance(data: UpdateBucketDetails):
     bucket = data.name
@@ -118,6 +119,7 @@ def update_balance(data: UpdateBucketDetails):
         buckets[bucket]['cap'] = cap
         return f"Updated {bucket}'s cap to {cap}"
 
+# TODO: rewire according to new buckets format
 @app.put('/transfer')
 def transfer(data: TransferData):
     src = data.source
@@ -150,8 +152,6 @@ def transfer(data: TransferData):
     buckets[src]['balance'] -= amt
     buckets[dest]['balance'] += amt
     return f'Transferred {amt} from {src} to {dest}'
-
-# TODO: add route to update bucket details, like change balance directly, change name, change cap, etc
 
 # def main():
 #     intro = '''
