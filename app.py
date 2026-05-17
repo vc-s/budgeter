@@ -1,25 +1,7 @@
-from typing import Optional
-from pydantic import BaseModel, Field
+import json
 from fastapi import FastAPI, status, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-
-class BucketData(BaseModel):
-    balance: int = Field(ge=0)
-    cap: Optional[int] = Field(default=None, gt=0)
-    
-class BucketCreate(BaseModel):
-    name: str
-    balance: int = Field(ge=0)
-    cap: Optional[int] = Field(default=None, gt=0)
-
-class UpdateBucketBalance(BaseModel):
-    name: str
-    amount: int
-
-class TransferData(BaseModel):
-    source: str
-    destination: str
-    amount: int = Field(ge=0)
+from models import BucketData, BucketCreate, UpdateBucketDetails, TransferData
 
 app = FastAPI()
 
@@ -31,7 +13,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-buckets = {'Transport': {'balance': 680, 'cap': 680}}
+with open("buckets.json", "r") as f:
+    db = json.load(f)
+    buckets: list = db["buckets"]
+
+def write_to_db():
+    with open("buckets.json", "w") as f:
+        json.dump(db, f, indent=4)
 
 @app.get('/list-buckets')
 def list_buckets():
@@ -42,47 +30,93 @@ def add_bucket(data: BucketCreate):
     name = data.name
     bal = data.balance
     cap = data.cap
-    buckets[name] = {'balance': bal, 'cap': cap}
+    
+    if bal > cap:
+        raise HTTPException(
+            status_code = status.HTTP_400_BAD_REQUEST,
+            detail = 'Balance exceeds cap'
+        )
+    
+    buckets.append(
+        {
+            'id': max((bucket["id"] for bucket in buckets), default=0) + 1,
+            'name': name,
+            'balance': bal,
+            'cap': cap
+        }
+    )
+    write_to_db()
     return f'Added {name} as a bucket.'
 
-@app.delete('/remove-bucket/{bucket}')
-def remove_bucket(bucket: str):
-    if bucket in buckets:
-        buckets.pop(bucket)
-        return f'Removed bucket {bucket} !'
+@app.delete('/remove-bucket/{id}')
+def remove_bucket(id: int):
+    if any(item["id"] == id for item in buckets):
+        
+        for item in buckets:
+            if item["id"] == id:
+                name = item["name"]
+                buckets.remove(item)
+                return f'Removed bucket {name}'
+            
     raise HTTPException(
         status_code = status.HTTP_404_NOT_FOUND,
         detail = 'Bucket does not exist'
     )
 
 @app.put('/update-balance')
-def update_balance(data: UpdateBucketBalance):
+def update_balance(data: UpdateBucketDetails):
     bucket = data.name
+    rename = data.newname
     amt = data.amount
+    bal = data.balance
+    cap = data.cap
     
-    if bucket not in buckets:
+    if not any(item["name"] == bucket for item in buckets):
         raise HTTPException(
         status_code = status.HTTP_404_NOT_FOUND,
         detail = 'Bucket does not exist'
     )
         
-    cap = buckets[bucket]['cap']
-    balance = buckets[bucket]['balance']
+    existing_cap = buckets[bucket]['cap']
+    existing_balance = buckets[bucket]['balance']
+    
+    if amt:
+        if existing_cap:
+            if amt + existing_balance > existing_cap:
+                raise HTTPException(
+                    status_code = status.HTTP_400_BAD_REQUEST,
+                    detail = 'Final balance exceeds cap'
+                )
+                
+            if amt + existing_balance < 0: 
+                raise HTTPException(
+                    status_code = status.HTTP_400_BAD_REQUEST,
+                    detail = 'Final balance falls below zero'
+                )
+        
+        buckets[bucket]['balance'] += amt
+        return f"Added {amt} to {bucket}"
+    
+    if bal:
+        if existing_cap:
+            if bal > existing_cap:
+                raise HTTPException(
+                    status_code = status.HTTP_400_BAD_REQUEST,
+                    detail = 'Balance exceeds cap'
+                )
+                
+            if bal < 0: 
+                raise HTTPException(
+                    status_code = status.HTTP_400_BAD_REQUEST,
+                    detail = 'Balance falls below zero'
+                )
+        
+        buckets[bucket]['balance'] = bal
+        return f"Updated {bucket}'s balance to {bal}"
     
     if cap:
-        if amt + balance > cap:
-            raise HTTPException(
-                status_code = status.HTTP_400_BAD_REQUEST,
-                detail = 'Final balance exceeds cap'
-            )
-        if amt + balance < 0: 
-            raise HTTPException(
-                status_code = status.HTTP_400_BAD_REQUEST,
-                detail = 'Final balance falls below zero'
-            )
-    
-    buckets[bucket]['balance'] += amt
-    return f"Updated {bucket}'s balance"
+        buckets[bucket]['cap'] = cap
+        return f"Updated {bucket}'s cap to {cap}"
 
 @app.put('/transfer')
 def transfer(data: TransferData):
