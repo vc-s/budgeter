@@ -129,8 +129,8 @@ def update_balance(data: UpdateBucketBalance):
     #         detail = 'Bucket does not exist'
     #     )
         
-    existing_cap = buckets['cap']
-    existing_balance = buckets['balance']
+    existing_cap = bucket['cap']
+    existing_balance = bucket['balance']
     
     if existing_cap:
         if amt + existing_balance > existing_cap:
@@ -145,10 +145,10 @@ def update_balance(data: UpdateBucketBalance):
             detail = 'Final balance falls below zero'
         )
     
-    buckets['balance'] += amt
+    bucket['balance'] += amt
     
-    op = ['Added', 'to'] if amt >= 0 else ['Removed', 'from']
-    return f'{op[0]} {amt} {op[1]} {bucket['name']}'
+    op = [1, 'Added', 'to'] if amt >= 0 else [-1, 'Removed', 'from']
+    return f'{op[1]} {amt*op[0]} {op[2]} {bucket['name']}'
 
 # TODO: rewire according to new buckets format
 @app.put('/transfer')
