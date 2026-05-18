@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react'
 import './App.css'
+import { useState, useEffect } from 'react'
+import Toast from './components/Toast/Toast.jsx'
 
 // url = 'http://127.0.0.1:8000'
 // getBucketsUrl = url + '/list-buckets'
@@ -34,6 +35,8 @@ function App() {
 		})
 		const data = await resp.json()
 
+		// addToast(data)
+
 		setName('')
 		setBalance('')
 		setCap('')
@@ -49,7 +52,9 @@ function App() {
 
 		const data = await resp.json()
 
-		setName('')
+		// addToast(data)
+
+		setID('')
 		getBuckets()
 	}
 
@@ -101,11 +106,9 @@ function App() {
 					</div>
 					<br /> <br />
 					
-					<input
-						type="submit"
-						value="Add Bucket"
-						class="submit-btn"
-					/>
+					<button class="submit-btn" type="submit">
+						Add Bucket
+					</button>
 				</form>
 			</div>
 
@@ -119,6 +122,8 @@ function App() {
 					</li>
 				))}
 			</ol>
+
+			<Toast message="Bucket added successfully!" />
 		</div>
 	)
 }

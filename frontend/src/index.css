@@ -1,8 +1,9 @@
 :root {
-  --font-color: #324CE0;
+  --font-color: #2483ff;
 }
 
 * {
   background-color: black;
   color: var(--font-color);
+  font-family: 'Courier New', Courier, monospace;
 }

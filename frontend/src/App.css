@@ -22,11 +22,19 @@
 .submit-btn {
     border: 2px var(--font-color) solid;
     border-radius: 5px;
-    height: 30px;
-    width: 90px;
+    padding: 8px 10px;
 }
 
 .submit-btn:hover {
     background-color: var(--font-color);
     color: black;
+    font-weight: bold;
+}
+
+input {
+    border: 1px var(--font-color) solid;
+    border-radius: 5px;
+    height: 30px;
+    width: 25%;
+    padding: 0 8px;
 }
