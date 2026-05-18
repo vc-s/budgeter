@@ -12,6 +12,7 @@ function App() {
 	const [name, setName] = useState('')
 	const [balance, setBalance] = useState('')
 	const [cap, setCap] = useState('')
+	const [amount, setAmount] = useState('')
 
 	const getBuckets = async () => {
 		const resp = await fetch(`http://127.0.0.1:8000/list-buckets`)
@@ -58,9 +59,55 @@ function App() {
 		getBuckets()
 	}
 
-	// TODO: Add bucket update functionality
-	// Make a pencil icon in front of the X button
-	// When you click it, all of the fields become editable
+	const updateDetails = async(e) => {
+
+		const resp = await fetch(``, {
+			methos: 'PUT',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				id: id,
+				newname: name,
+				balance: balance,
+				cap: cap
+			})
+		})
+
+		const data = await resp.json()
+
+		// addToast(data)
+
+		setID('')
+		setName('')
+		setBalance('')
+		setCap('')
+
+		getBuckets()
+	}
+
+	const updateBalance = async(e) => {
+
+		const resp = await fetch(``, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				id: id,
+				amount: amount
+			})
+		})
+
+		const data = resp.json()
+
+		// addToast(data)
+
+		setID('')
+		setAmount('')
+
+		getBuckets()
+	}
 
 	useEffect(() => {
 		getBuckets()
@@ -127,5 +174,8 @@ function App() {
 		</div>
 	)
 }
+// TODO: line 166 - 
+// add the pencil button to edit the bucket details. it transforms each field into an input box
+// add a + button to add money into a bucket. make an input field appear below the bucket asking how much, once entered hide it again
 
 export default App

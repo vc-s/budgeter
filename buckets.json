@@ -2,9 +2,9 @@
     "buckets": [
         {
             "id": 1,
-            "name": "a",
-            "balance": 1,
-            "cap": 1
+            "name": "Transport",
+            "balance": 680,
+            "cap": 680
         }
     ]
 }

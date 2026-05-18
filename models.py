@@ -13,13 +13,16 @@ class BucketCreate(BaseModel):
     cap: Optional[int] = Field(default=None, gt=0)
 
 class UpdateBucketDetails(BaseModel):
-    name: str
+    id: int = Field(gt=0)
     newname: Optional[str] = None
-    amount: Optional[int] = None
     balance: Optional[int] = Field(default=None, ge=0)
     cap: Optional[int] = Field(default=None, gt=0)
 
+class UpdateBucketBalance(BaseModel):
+    id: int = Field(gt=0)
+    amount: int
+
 class TransferData(BaseModel):
-    source: str
-    destination: str
+    sourceID: int
+    destinationID: int
     amount: int = Field(ge=0)

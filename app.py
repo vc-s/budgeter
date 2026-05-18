@@ -1,7 +1,7 @@
 import json
 from fastapi import FastAPI, status, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from models import BucketData, BucketCreate, UpdateBucketDetails, TransferData
+from models import BucketData, BucketCreate, UpdateBucketDetails, UpdateBucketBalance, TransferData
 
 app = FastAPI()
 
@@ -63,40 +63,28 @@ def remove_bucket(id: int):
         detail = 'Bucket does not exist'
     )
 
-# TODO: rewire according to new buckets format
-@app.put('/update-balance')
-def update_balance(data: UpdateBucketDetails):
-    bucket = data.name
-    rename = data.newname
-    amt = data.amount
+@app.put('/update-details')
+def update_details(data: UpdateBucketDetails):
+    id = data.id
+    newname = data.newname
     bal = data.balance
     cap = data.cap
     
-    if not any(item["name"] == bucket for item in buckets):
+    if not any(item["id"] == id for item in buckets):
         raise HTTPException(
         status_code = status.HTTP_404_NOT_FOUND,
         detail = 'Bucket does not exist'
     )
-        
-    existing_cap = buckets[bucket]['cap']
-    existing_balance = buckets[bucket]['balance']
     
-    if amt:
-        if existing_cap:
-            if amt + existing_balance > existing_cap:
-                raise HTTPException(
-                    status_code = status.HTTP_400_BAD_REQUEST,
-                    detail = 'Final balance exceeds cap'
-                )
-                
-            if amt + existing_balance < 0: 
-                raise HTTPException(
-                    status_code = status.HTTP_400_BAD_REQUEST,
-                    detail = 'Final balance falls below zero'
-                )
+    for item in buckets:
+        if item["id"] == id:
+            bucket = item
         
-        buckets[bucket]['balance'] += amt
-        return f"Added {amt} to {bucket}"
+    if cap:
+        bucket['cap'] = cap
+        
+    existing_cap = bucket['cap']
+    bucket_name = bucket['name']
     
     if bal:
         if existing_cap:
@@ -105,19 +93,62 @@ def update_balance(data: UpdateBucketDetails):
                     status_code = status.HTTP_400_BAD_REQUEST,
                     detail = 'Balance exceeds cap'
                 )
-                
-            if bal < 0: 
-                raise HTTPException(
-                    status_code = status.HTTP_400_BAD_REQUEST,
-                    detail = 'Balance falls below zero'
-                )
         
-        buckets[bucket]['balance'] = bal
-        return f"Updated {bucket}'s balance to {bal}"
+        bucket['balance'] = bal
     
-    if cap:
-        buckets[bucket]['cap'] = cap
-        return f"Updated {bucket}'s cap to {cap}"
+    if newname:
+        bucket['name'] = newname
+        
+    return f"Updated {bucket_name}'s details"
+
+@app.put('/update-balance')
+def update_balance(data: UpdateBucketBalance):
+    id = data.id
+    amt = data.amount
+    
+    if not any(item["id"] == id for item in buckets):
+        raise HTTPException(
+            status_code = status.HTTP_404_NOT_FOUND,
+            detail = 'Bucket does not exist'
+        )
+    
+    for item in buckets:
+        if item["id"] == id:
+            bucket = item
+    
+    # TODO: check if this is better than above
+    # flag = True
+    # for item in buckets:
+    #     if item["id"] == id:
+    #         bucket = item
+    #         flag = False
+    
+    # if flag:
+    #     raise HTTPException(
+    #         status_code = status.HTTP_404_NOT_FOUND,
+    #         detail = 'Bucket does not exist'
+    #     )
+        
+    existing_cap = buckets['cap']
+    existing_balance = buckets['balance']
+    
+    if existing_cap:
+        if amt + existing_balance > existing_cap:
+            raise HTTPException(
+                status_code = status.HTTP_400_BAD_REQUEST,
+                detail = 'Final balance exceeds cap'
+            )
+            
+    if amt + existing_balance < 0: 
+        raise HTTPException(
+            status_code = status.HTTP_400_BAD_REQUEST,
+            detail = 'Final balance falls below zero'
+        )
+    
+    buckets['balance'] += amt
+    
+    op = ['Added', 'to'] if amt >= 0 else ['Removed', 'from']
+    return f'{op[0]} {amt} {op[1]} {bucket['name']}'
 
 # TODO: rewire according to new buckets format
 @app.put('/transfer')
