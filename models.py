@@ -9,14 +9,14 @@ class BucketData(BaseModel):
     
 class BucketCreate(BaseModel):
     name: str
-    balance: int = Field(ge=0)
-    cap: Optional[int] = Field(default=None, gt=0)
+    balance: int = Field(ge=0, description="Balance must not be less than zero")
+    cap: Optional[int] = Field(default=None, gt=0, description="Cap must be greater than 0")
 
 class UpdateBucketDetails(BaseModel):
     id: int = Field(gt=0)
     newname: Optional[str] = None
-    balance: Optional[int] = Field(default=None, ge=0)
-    cap: Optional[int] = Field(default=None, gt=0)
+    balance: Optional[int] = Field(default=None, ge=0, description="Balance must not be less than zero")
+    cap: Optional[int] = Field(default=None, gt=0, description="Cap must be greater than 0")
 
 class UpdateBucketBalance(BaseModel):
     id: int = Field(gt=0)
@@ -25,4 +25,4 @@ class UpdateBucketBalance(BaseModel):
 class TransferData(BaseModel):
     sourceID: int
     destinationID: int
-    amount: int = Field(ge=0)
+    amount: int = Field(gt=0, description="Amount must be greater than zero")

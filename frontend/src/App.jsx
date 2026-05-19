@@ -8,11 +8,15 @@ import Toast from './components/Toast/Toast.jsx'
 function App() {
 	const [buckets, setBuckets] = useState([])
 
-	const [id, setID] = useState('')
-	const [name, setName] = useState('')
-	const [balance, setBalance] = useState('')
-	const [cap, setCap] = useState('')
-	const [amount, setAmount] = useState('')
+	const [ id, setID ] = useState('')
+	const [ name, setName ] = useState('')
+	const [ balance, setBalance ] = useState('')
+	const [ cap, setCap ] = useState(null)
+	const [ amount, setAmount ] = useState('')
+
+	const [ toasts, setToasts ] = useState([])
+
+	const [ errors, setErrors ] = useState({})
 
 	const getBuckets = async () => {
 		const resp = await fetch(`http://127.0.0.1:8000/list-buckets`)
@@ -20,8 +24,34 @@ function App() {
 		setBuckets(data)
 	}
 
+	const addToast = (message) => {
+		const newToast = {
+			id: Date.now(),
+			message: message
+		}
+
+		setToasts([...toasts, newToast])
+		
+	}
+
+	const removeToast = (id) => {
+		setToasts(newToasts => newToasts.filter(toast => toast.id != id))
+	}
+
 	const addBucket = async (e) => {
 		e.preventDefault()
+
+		setErrors({})
+
+		const newErrors = {}
+		if (!name.trim()) newErrors.name = 'Name is required'
+		if (!balance) newErrors.balance = 'Balance is required'
+
+		if (Object.keys(newErrors).length > 0) {
+			addToast('Please fill in all required fields')
+			setErrors(newErrors)
+			return
+		}
 
 		const resp = await fetch(`http://127.0.0.1:8000/add-bucket`, {
 			method: 'POST',
@@ -31,12 +61,16 @@ function App() {
 			body: JSON.stringify({
 				name: name,
 				balance: balance,
-				cap: cap
+				cap: cap === '' ? null : cap
 			})
 		})
 		const data = await resp.json()
-
-		// addToast(data)
+		
+		if (resp.ok){
+			addToast(data)
+		} else {
+			data.detail.forEach(message => addToast(message))
+		}
 
 		setName('')
 		setBalance('')
@@ -53,7 +87,7 @@ function App() {
 
 		const data = await resp.json()
 
-		// addToast(data)
+		addToast(data)
 
 		setID('')
 		getBuckets()
@@ -76,7 +110,7 @@ function App() {
 
 		const data = await resp.json()
 
-		// addToast(data)
+		addToast(data)
 
 		setID('')
 		setName('')
@@ -99,9 +133,9 @@ function App() {
 			})
 		})
 
-		const data = resp.json()
+		const data = await resp.json()
 
-		// addToast(data)
+		addToast(data)
 
 		setID('')
 		setAmount('')
@@ -120,29 +154,35 @@ function App() {
 			<h2>Add Bucket</h2>
 			<div>
 				<form onSubmit={addBucket}>
-					<div class="form-input-field">
+					<div className="form-input-field">
 						Name:
 						<input
 							type="text"
 							value={name}
 							placeholder='Enter bucket Name'
 							onChange={(e) => setName(e.target.value)}
+							style={{
+								borderColor: errors.name ? 'red' : 'var(--font-color)'
+							}}
 						/>
 					</div>
 					<br /> <br />
 					
-					<div class="form-input-field">
+					<div className="form-input-field">
 						Balance:
 						<input
 							type="number"
 							value={balance}
 							placeholder='Enter balance'
 							onChange={(e) => setBalance(e.target.value)}
+							style={{
+								borderColor: errors.balance ? 'red' : 'var(--font-color)'
+							}}
 						/>
 					</div>
 					<br /> <br />
 					
-					<div class="form-input-field">
+					<div className="form-input-field">
 						Cap:
 						<input
 							type="number"
@@ -153,28 +193,38 @@ function App() {
 					</div>
 					<br /> <br />
 					
-					<button class="submit-btn" type="submit">
+					<button className="submit-btn" type="submit">
 						Add Bucket
 					</button>
 				</form>
 			</div>
 
 			<h2>Buckets</h2>
-			<ol class="bucket-list">
+			<ol className="bucket-list">
 				{Object.entries(buckets).map(([index, data]) => (
 					<li key={index}>
-						{data.name}: Balance = {data.balance}, Cap = {data.cap || 'None'}
-						<button class="delete-button" onClick={() => removeBucket(data.id)}>X</button>
+						{data.name}: Balance = {data.balance} | Cap = {data.cap || 'None'}
+						<button className="delete-button" onClick={() => removeBucket(data.id)}>X</button>
 						<br /> <br />
 					</li>
 				))}
 			</ol>
 
-			<Toast message="Bucket added successfully!" />
+			<div className="toast-container">
+				{toasts.map((toast) => (
+					<Toast
+						key={toast.id}
+						message={toast.message}
+						id={toast.id}
+						onDismiss={removeToast}
+					/>
+				))}
+			</div>
+
 		</div>
 	)
 }
-// TODO: line 166 - 
+// TODO: line 206 - edit details
 // add the pencil button to edit the bucket details. it transforms each field into an input box
 // add a + button to add money into a bucket. make an input field appear below the bucket asking how much, once entered hide it again
 

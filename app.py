@@ -1,6 +1,8 @@
 import json
-from fastapi import FastAPI, status, HTTPException
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, status, HTTPException
+from fastapi.exceptions import RequestValidationError
 from models import BucketData, BucketCreate, UpdateBucketDetails, UpdateBucketBalance, TransferData
 
 app = FastAPI()
@@ -21,6 +23,14 @@ def write_to_db():
     with open("buckets.json", "w") as f:
         json.dump(db, f, indent=4)
 
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request, exc):
+    error_messages = [error["msg"] for error in exc.errors()]
+    return JSONResponse(
+        status_code=400,
+        content={"detail": error_messages},
+    )
+
 @app.get('/list-buckets')
 def list_buckets():
     return buckets
@@ -31,11 +41,12 @@ def add_bucket(data: BucketCreate):
     bal = data.balance
     cap = data.cap
     
-    if bal > cap:
-        raise HTTPException(
-            status_code = status.HTTP_400_BAD_REQUEST,
-            detail = 'Balance exceeds cap'
-        )
+    if cap:
+        if bal > cap:
+            raise HTTPException(
+                status_code = status.HTTP_400_BAD_REQUEST,
+                detail = ['Balance exceeds cap']
+            )
     
     buckets.append(
         {
@@ -60,7 +71,7 @@ def remove_bucket(id: int):
             
     raise HTTPException(
         status_code = status.HTTP_404_NOT_FOUND,
-        detail = 'Bucket does not exist'
+        detail = ['Bucket does not exist']
     )
 
 @app.put('/update-details')
@@ -73,9 +84,9 @@ def update_details(data: UpdateBucketDetails):
     if not any(item["id"] == id for item in buckets):
         raise HTTPException(
         status_code = status.HTTP_404_NOT_FOUND,
-        detail = 'Bucket does not exist'
-    )
-    
+            detail = ['Bucket does not exist']
+        )
+
     for item in buckets:
         if item["id"] == id:
             bucket = item
@@ -91,7 +102,7 @@ def update_details(data: UpdateBucketDetails):
             if bal > existing_cap:
                 raise HTTPException(
                     status_code = status.HTTP_400_BAD_REQUEST,
-                    detail = 'Balance exceeds cap'
+                    detail = ['Balance exceeds cap']
                 )
         
         bucket['balance'] = bal
@@ -109,7 +120,7 @@ def update_balance(data: UpdateBucketBalance):
     if not any(item["id"] == id for item in buckets):
         raise HTTPException(
             status_code = status.HTTP_404_NOT_FOUND,
-            detail = 'Bucket does not exist'
+            detail = ['Bucket does not exist']
         )
     
     for item in buckets:
@@ -126,7 +137,7 @@ def update_balance(data: UpdateBucketBalance):
     # if flag:
     #     raise HTTPException(
     #         status_code = status.HTTP_404_NOT_FOUND,
-    #         detail = 'Bucket does not exist'
+    #         detail = ['Bucket does not exist']
     #     )
         
     existing_cap = buckets['cap']
@@ -136,13 +147,13 @@ def update_balance(data: UpdateBucketBalance):
         if amt + existing_balance > existing_cap:
             raise HTTPException(
                 status_code = status.HTTP_400_BAD_REQUEST,
-                detail = 'Final balance exceeds cap'
+                detail = ['Final balance exceeds cap']
             )
             
     if amt + existing_balance < 0: 
         raise HTTPException(
             status_code = status.HTTP_400_BAD_REQUEST,
-            detail = 'Final balance falls below zero'
+            detail = ['Final balance falls below zero']
         )
     
     buckets['balance'] += amt
@@ -160,7 +171,7 @@ def transfer(data: TransferData):
     if src not in buckets or dest not in buckets:
         raise HTTPException(
             status_code = status.HTTP_404_NOT_FOUND,
-            detail = 'Bucket not found'
+            detail = ['Bucket not found']
         )
     
     src_bal = buckets[src]['balance']
@@ -170,14 +181,14 @@ def transfer(data: TransferData):
     if src_bal - amt < 0:
         raise HTTPException(
             status_code = status.HTTP_400_BAD_REQUEST,
-            detail = f'{src} does not have enough balance'
+            detail = [f'{src} does not have enough balance']
         )
     
     if dest_cap:
         if dest_bal + amt > dest_cap:
             raise HTTPException(
                 status_code = status.HTTP_400_BAD_REQUEST,
-                detail = f'Total money in {dest} exceeds its cap !'
+                detail = [f'Total money in {dest} exceeds its cap !']
             )
     
     buckets[src]['balance'] -= amt
