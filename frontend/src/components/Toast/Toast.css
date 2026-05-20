@@ -1,3 +1,36 @@
 .toast {
-    
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px;
+    background-color: rgb(44, 44, 44);
+    border-left: var(--font-color) solid 5px;
+    border-radius: '8px';
+    margin: '8px 0';
+    width: 25vw;
+    position: relative;
+    transform: translateX(100%); /* start off-screen */
+    animation: slideIn 0.3s ease-out forwards;
+    margin-bottom: 5px;
+}
+
+@keyframes slideIn {
+    to {
+        transform: translateX(0);
+    }
+}
+
+.toast-message {
+    font-size: 14px;
+    background: transparent;
+}
+
+.toast-close {
+    background: transparent;
+    border: none;
+}
+
+.toast-close:hover {
+    color: blue;
+    cursor: pointer;
 }

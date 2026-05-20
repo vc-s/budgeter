@@ -1,18 +1,22 @@
 import { useState, useEffect } from 'react'
 import './Toast.css'
 
-// TODO: add toasts for add/remove bucket success/failure
-function Toast({ message }) {
+// TODO: differentiate between info and error toasts
+function Toast({ message, id, onDismiss }) {
 
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            onDismiss(id)
+        }, 3000)
+    }, [id, onDismiss])
 
     return (
-        <div class="toast">
-            <div>✅</div>
-            <div>
-                <p>{message}</p>
-            </div>
+        <div className='toast'>
+            <span className='toast-message'>{message}</span>
+            <button className='toast-close' onClick={() => onDismiss(id)}>x</button>
         </div>
     )
+
 }
 
 export default Toast;
