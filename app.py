@@ -38,21 +38,13 @@ def list_buckets():
 @app.post('/add-bucket')
 def add_bucket(data: BucketCreate):
     name = data.name
-    bal = data.balance
     cap = data.cap
-    
-    if cap:
-        if bal > cap:
-            raise HTTPException(
-                status_code = status.HTTP_400_BAD_REQUEST,
-                detail = ['Balance exceeds cap']
-            )
     
     buckets.append(
         {
             'id': max((bucket["id"] for bucket in buckets), default=0) + 1,
             'name': name,
-            'balance': bal,
+            'balance': 0,
             'cap': cap
         }
     )
@@ -83,7 +75,7 @@ def update_details(data: UpdateBucketDetails):
     
     if not any(item["id"] == id for item in buckets):
         raise HTTPException(
-        status_code = status.HTTP_404_NOT_FOUND,
+            status_code = status.HTTP_404_NOT_FOUND,
             detail = ['Bucket does not exist']
         )
 
@@ -98,13 +90,11 @@ def update_details(data: UpdateBucketDetails):
     bucket_name = bucket['name']
     
     if bal:
-        if existing_cap:
-            if bal > existing_cap:
-                raise HTTPException(
-                    status_code = status.HTTP_400_BAD_REQUEST,
-                    detail = ['Balance exceeds cap']
-                )
-        
+        if bal > existing_cap:
+            raise HTTPException(
+                status_code = status.HTTP_400_BAD_REQUEST,
+                detail = ['Balance exceeds cap']
+            )
         bucket['balance'] = bal
     
     if newname:
@@ -143,12 +133,11 @@ def update_balance(data: UpdateBucketBalance):
     existing_cap = bucket['cap']
     existing_balance = bucket['balance']
     
-    if existing_cap:
-        if amt + existing_balance > existing_cap:
-            raise HTTPException(
-                status_code = status.HTTP_400_BAD_REQUEST,
-                detail = ['Final balance exceeds cap']
-            )
+    if amt + existing_balance > existing_cap:
+        raise HTTPException(
+            status_code = status.HTTP_400_BAD_REQUEST,
+            detail = ['Final balance exceeds cap']
+        )
             
     if amt + existing_balance < 0: 
         raise HTTPException(

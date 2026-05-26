@@ -4,13 +4,12 @@ from pydantic import BaseModel, Field
 class BucketData(BaseModel):
     id: int = Field(gt=0)
     name: str
-    balance: int = Field(ge=0)
-    cap: Optional[int] = Field(default=None, gt=0)
+    balance: int = Field(default=0, ge=0)
+    cap: int = Field(gt=0)
     
 class BucketCreate(BaseModel):
     name: str
-    balance: int = Field(ge=0, description="Balance must not be less than zero")
-    cap: Optional[int] = Field(default=None, gt=0, description="Cap must be greater than 0")
+    cap: int = Field(gt=0, description="Cap must be greater than 0")
 
 class UpdateBucketDetails(BaseModel):
     id: int = Field(gt=0)

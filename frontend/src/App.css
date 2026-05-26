@@ -1,7 +1,15 @@
-.bucket-list li {
+header {
     display: flex;
-    gap: 12px;
-    align-items: center;
+    justify-content: space-between;
+}
+
+.bucket-list {
+    display: flex;
+    flex-wrap: wrap;
+    list-style: none;
+    gap: 20px;
+    padding: 10px;
+    justify-content: space-around;
 }
 
 .form-input-field {

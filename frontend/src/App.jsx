@@ -1,17 +1,18 @@
 import './App.css'
 import { useState, useEffect } from 'react'
 import Toast from './components/Toast/Toast.jsx'
+import BucketCard from './components/BucketCard/BucketCard.jsx'
 
 // url = 'http://127.0.0.1:8000'
 // getBucketsUrl = url + '/list-buckets'
 
 function App() {
-	const [buckets, setBuckets] = useState([])
+	const [ buckets, setBuckets ] = useState([])
 
 	const [ id, setID ] = useState('')
 	const [ name, setName ] = useState('')
 	const [ balance, setBalance ] = useState('')
-	const [ cap, setCap ] = useState(null)
+	const [ cap, setCap ] = useState('')
 	const [ amount, setAmount ] = useState('')
 
 	const [ toasts, setToasts ] = useState([])
@@ -45,7 +46,7 @@ function App() {
 
 		const newErrors = {}
 		if (!name.trim()) newErrors.name = 'Name is required'
-		if (!balance) newErrors.balance = 'Balance is required'
+		if (!cap) newErrors.cap = 'Cap is required'
 
 		if (Object.keys(newErrors).length > 0) {
 			addToast('Please fill in all required fields')
@@ -60,8 +61,7 @@ function App() {
 			},
 			body: JSON.stringify({
 				name: name,
-				balance: balance,
-				cap: cap === '' ? null : cap
+				cap: cap
 			})
 		})
 		const data = await resp.json()
@@ -73,7 +73,6 @@ function App() {
 		}
 
 		setName('')
-		setBalance('')
 		setCap('')
 
 		getBuckets()
@@ -96,7 +95,7 @@ function App() {
 	const updateDetails = async(e) => {
 
 		const resp = await fetch(``, {
-			methos: 'PUT',
+			methods: 'PUT',
 			headers: {
 				'Content-Type': 'application/json'
 			},
@@ -149,7 +148,10 @@ function App() {
 
 	return (
 		<div>
-			<h1>The Budgeter</h1>
+			<header>
+				<h1>The Budgeter</h1>
+				<p style={{fontWeight: 'bold'}}>Account: 10,000</p>
+			</header>
 
 			<h2>Add Bucket</h2>
 			<div>
@@ -159,24 +161,10 @@ function App() {
 						<input
 							type="text"
 							value={name}
-							placeholder='Enter bucket Name'
+							placeholder='Enter bucket name'
 							onChange={(e) => setName(e.target.value)}
 							style={{
 								borderColor: errors.name ? 'red' : 'var(--font-color)'
-							}}
-						/>
-					</div>
-					<br /> <br />
-					
-					<div className="form-input-field">
-						Balance:
-						<input
-							type="number"
-							value={balance}
-							placeholder='Enter balance'
-							onChange={(e) => setBalance(e.target.value)}
-							style={{
-								borderColor: errors.balance ? 'red' : 'var(--font-color)'
 							}}
 						/>
 					</div>
@@ -187,7 +175,7 @@ function App() {
 						<input
 							type="number"
 							value={cap}
-							placeholder='Enter cap (if applicable)'
+							placeholder='Enter cap amount'
 							onChange={(e) => setCap(e.target.value)}
 						/>
 					</div>
@@ -199,16 +187,16 @@ function App() {
 				</form>
 			</div>
 
-			<h2>Buckets</h2>
-			<ol className="bucket-list">
+			<div className="bucket-list">
 				{Object.entries(buckets).map(([index, data]) => (
-					<li key={index}>
-						{data.name}: Balance = {data.balance} | Cap = {data.cap || 'None'}
-						<button className="delete-button" onClick={() => removeBucket(data.id)}>X</button>
-						<br /> <br />
-					</li>
+					<BucketCard
+						key={index}
+						data={data}
+						removeBucket={removeBucket}
+						updateDetails={updateDetails}
+					/>
 				))}
-			</ol>
+			</div>
 
 			<div className="toast-container">
 				{toasts.map((toast) => (
@@ -224,8 +212,17 @@ function App() {
 		</div>
 	)
 }
-// TODO: line 206 - edit details
-// add the pencil button to edit the bucket details. it transforms each field into an input box
-// add a + button to add money into a bucket. make an input field appear below the bucket asking how much, once entered hide it again
+//TODO: add floating plus menu in bottom right for:
+	// - add bucket
+	// - add transaction
+	// - fill all buckets
+	// - transfer between buckets
+
+// maybe side panel opens for all
+// 2 and 3 are both just transactions -
+	// fill all buckets = transaction with amount = cap - balance for each bucket
+// 4 is a different one again
+
+// for 2, not only buckets, direct account also has to be an option
 
 export default App
