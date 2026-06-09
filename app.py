@@ -59,6 +59,7 @@ def remove_bucket(id: int):
             if item["id"] == id:
                 name = item["name"]
                 buckets.remove(item)
+                write_to_db()
                 return f'Removed bucket {name}'
             
     raise HTTPException(
@@ -99,13 +100,15 @@ def update_details(data: UpdateBucketDetails):
     
     if newname:
         bucket['name'] = newname
-        
+    
+    write_to_db()
     return f"Updated {bucket_name}'s details"
 
 @app.put('/update-balance')
 def update_balance(data: UpdateBucketBalance):
     id = data.id
     amt = data.amount
+    isFill = data.isFill
     
     if not any(item["id"] == id for item in buckets):
         raise HTTPException(
@@ -129,7 +132,12 @@ def update_balance(data: UpdateBucketBalance):
     #         status_code = status.HTTP_404_NOT_FOUND,
     #         detail = ['Bucket does not exist']
     #     )
-        
+    
+    if isFill:
+        bucket['balance'] = bucket['cap']
+        write_to_db()
+        return f'Filled {bucket['name']}'
+    
     existing_cap = bucket['cap']
     existing_balance = bucket['balance']
     
@@ -147,6 +155,7 @@ def update_balance(data: UpdateBucketBalance):
     
     bucket['balance'] += amt
     
+    write_to_db()
     op = [1, 'Added', 'to'] if amt >= 0 else [-1, 'Removed', 'from']
     return f'{op[1]} {amt*op[0]} {op[2]} {bucket['name']}'
 
@@ -182,6 +191,7 @@ def transfer(data: TransferData):
     
     buckets[src]['balance'] -= amt
     buckets[dest]['balance'] += amt
+    write_to_db()
     return f'Transferred {amt} from {src} to {dest}'
 
 # def main():

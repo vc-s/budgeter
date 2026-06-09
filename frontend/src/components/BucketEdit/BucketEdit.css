@@ -1,0 +1,40 @@
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 998;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+.edit-popup {
+    z-index: 999;
+    padding: 15px;
+    position: fixed;
+    border-radius: 5px;
+    width: fit-content;
+    height: fit-content;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    animation: popIn 0.3s ease-out;
+    border: var(--font-color) 2px solid;
+}
+
+.edit-popup input {
+    width: 100%;
+}
+
+@keyframes popIn {
+    from {
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 0;
+    }
+    to {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+    }
+}

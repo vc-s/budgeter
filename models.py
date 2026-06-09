@@ -20,6 +20,7 @@ class UpdateBucketDetails(BaseModel):
 class UpdateBucketBalance(BaseModel):
     id: int = Field(gt=0)
     amount: int
+    isFill: bool = Field(default=False)
 
 class TransferData(BaseModel):
     sourceID: int

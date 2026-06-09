@@ -1,14 +1,9 @@
 import "./BucketCard.css"
 import { useEffect, useState, useRef } from "react";
 
-function BucketCard({ data, removeBucket, updateDetails }) {
+function BucketCard({ data, fillBucket, removeBucket, onEdit }) {
 
     const [ isOpen, setIsOpen ] = useState(false)
-
-    const [ id, setID ] = useState('')
-	const [ name, setName ] = useState('')
-	const [ balance, setBalance ] = useState('')
-	const [ cap, setCap ] = useState('')
 
     const percentage = (data.balance / data.cap) * 100
 
@@ -21,9 +16,9 @@ function BucketCard({ data, removeBucket, updateDetails }) {
                 <button className="menu" onClick={handleClick}>...</button>
                 {isOpen && (
                     <div className="dropdown">
-                        <button>Fill</button>
-                        <button onClick={() => updateDetails(data)}>Edit</button>
-                        <button onClick={() => removeBucket(data.id)}>Delete</button>
+                        <button onClick={() => {fillBucket(data.id, true); handleClick()}}>Fill</button>
+                        <button onClick={() => {onEdit(data); handleClick()}}>Edit</button>
+                        <button onClick={() => {removeBucket(data.id); handleClick()}}>Delete</button>
                     </div>
                 )}
             </div>

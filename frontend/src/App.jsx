@@ -2,6 +2,7 @@ import './App.css'
 import { useState, useEffect } from 'react'
 import Toast from './components/Toast/Toast.jsx'
 import BucketCard from './components/BucketCard/BucketCard.jsx'
+import BucketEdit from './components/BucketEdit/BucketEdit.jsx'
 
 // url = 'http://127.0.0.1:8000'
 // getBucketsUrl = url + '/list-buckets'
@@ -9,11 +10,13 @@ import BucketCard from './components/BucketCard/BucketCard.jsx'
 function App() {
 	const [ buckets, setBuckets ] = useState([])
 
-	const [ id, setID ] = useState('')
 	const [ name, setName ] = useState('')
 	const [ balance, setBalance ] = useState('')
 	const [ cap, setCap ] = useState('')
 	const [ amount, setAmount ] = useState('')
+
+	const [ isEditOpen, setIsEditOpen ] = useState(false)
+	const [ editingBucket, setEditingBucket ] = useState(0)
 
 	const [ toasts, setToasts ] = useState([])
 
@@ -88,22 +91,25 @@ function App() {
 
 		addToast(data)
 
-		setID('')
 		getBuckets()
 	}
 
-	const updateDetails = async(e) => {
+	const handleClickEdit = (data) => {
+		setIsEditOpen(true)
+		setEditingBucket(data)
+	}
 
-		const resp = await fetch(``, {
-			methods: 'PUT',
+	const updateBalance = async(id, isFill = false) => {
+
+		const resp = await fetch(`http://127.0.0.1:8000/update-balance`, {
+			method: 'PUT',
 			headers: {
 				'Content-Type': 'application/json'
 			},
 			body: JSON.stringify({
 				id: id,
-				newname: name,
-				balance: balance,
-				cap: cap
+				amount: isFill ? 0 : amount,
+				isFill: isFill
 			})
 		})
 
@@ -111,32 +117,6 @@ function App() {
 
 		addToast(data)
 
-		setID('')
-		setName('')
-		setBalance('')
-		setCap('')
-
-		getBuckets()
-	}
-
-	const updateBalance = async(e) => {
-
-		const resp = await fetch(``, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({
-				id: id,
-				amount: amount
-			})
-		})
-
-		const data = await resp.json()
-
-		addToast(data)
-
-		setID('')
 		setAmount('')
 
 		getBuckets()
@@ -186,14 +166,26 @@ function App() {
 					</button>
 				</form>
 			</div>
+			
+			{isEditOpen && (
+				<BucketEdit
+					data={editingBucket}
+					addToast={addToast}
+					onSave={() => {
+						setIsEditOpen(false)
+						getBuckets()
+					}}
+				/>
+			)}
 
 			<div className="bucket-list">
 				{Object.entries(buckets).map(([index, data]) => (
 					<BucketCard
 						key={index}
 						data={data}
+						fillBucket={updateBalance}
 						removeBucket={removeBucket}
-						updateDetails={updateDetails}
+						onEdit={handleClickEdit}
 					/>
 				))}
 			</div>
